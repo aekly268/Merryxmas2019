@@ -1,0 +1,60 @@
+<!doctype HTML>
+<html>
+<script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script>
+<script src="https://raw.githack.com/jeromeetienne/AR.js/2.0.8/aframe/build/aframe-ar.js"></script>
+<script>
+    {
+        window.onload = () => {
+            // get available devices
+            navigator.mediaDevices.enumerateDevices().then(function (devices) {
+                window.availableCameras = devices.map(function (device) {
+                    if (device.kind === 'videoinput') {
+                        return device.deviceId;
+                    }
+                }).filter(function (device) { return device !== null && device !== undefined });
+
+                console.debug('found ' + window.availableCameras.length + ' cameras', window.availableCameras);
+
+                // window.availableCameras now contains all cameras deviceId
+                window.selectedCamera = window.availableCameras[0];
+
+                console.debug('using ' + window.selectedCamera + ' camera');
+
+                var userMediaConstraints = {
+                    audio: false,
+                    video: {
+                        facingMode: 'environment',
+                        width: {
+                            ideal: window.cameraWidth,
+                        },
+                        height: {
+                            ideal: window.cameraHeight,
+                        }
+                    },
+                };
+
+
+                navigator.mediaDevices.getUserMedia(userMediaConstraints).then(function success(stream) {
+                    var domElement = document.querySelector('video');
+                    domElement.srcObject = stream;
+                    domElement.play();
+                    window.selectedCamera = window.selectedCamera === window.availableCameras.length ?
+                        0 : window.selectedCamera++;
+                });
+            });
+        }
+    }
+
+</script>
+
+<body style='margin : 0px; overflow: hidden;'>
+    <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;' vr-mode-ui="enabled: false">
+        <a-marker type='pattern' url='res/pattern-qr-code.patt'>
+            <a-text  position='-2 1 0' width="10" value="Merry Xmas!"></a-text>
+            <!-- <a-entity position='0 0 0' text="width: 10; value:Merry Xmas!"></a-entity> -->
+            <a-entity position='-2 -1 -2' obj-model="obj: url(res/dog.obj); mtl: url(res/dog.mtl)"></a-entity>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+</body>
+</html>
